@@ -11,8 +11,7 @@ is_hidden: true
 			<h2><%= year || '' %> <%= to_month_s(month) || '' %></h2>
 			<ul>
 				<% item_a.each do |item| %>
-					<li><%= item[:title] %></li>
-					<li><% #= render('_excerpt', :item => item) %></li>
+					<li><%= link_to item[:title], item %></li>
 				<% end %>
 			</ul>
 		<% end %>

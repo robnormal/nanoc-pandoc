@@ -50,7 +50,7 @@ compile '*' do
 	# don’t filter binary items
 	unless item.binary?
 		case item[:extension] && item[:extension].split('.').last
-		when 'pandoc'
+		when 'md', 'markdown', 'pandoc'
 			filter :pandoc
 			# filter :pygments
 		else

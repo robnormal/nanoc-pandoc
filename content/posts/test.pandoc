@@ -1,8 +1,9 @@
 Title:   My title
-Author:  John Doe
+Author:  Rob R
 Date:    September 1, 2008
 Comment: This is a sample mmd title block, with
          a field spanning multiple lines.
+tags:    [ test ]
 
 # Test
 

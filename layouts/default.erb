@@ -11,7 +11,7 @@
   <body>
     <div id="main">
 			<% if @item[:created_at] %>
-				<p><%= Time.parse(@item[:created_at]).strftime('%B %e, %Y') %></p>
+				<p><%= pretty_time @item[:created_at] %></p>
 			<% end %>
 
       <%= yield %>
