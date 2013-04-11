@@ -14,22 +14,22 @@
 #   because “*” matches zero or more characters.
 
 preprocess do
-	# create tag pages
-	tag_set(items).each do |tag|
-		items << Nanoc::Item.new(
-			"",
-			{ :tag => tag },
-			"/tags/#{tag}/"
-		)
-	end
+  # create tag pages
+  tag_set(items).each do |tag|
+    items << Nanoc::Item.new(
+      "",
+      { :tag => tag },
+      "/tags/#{tag}/"
+    )
+  end
 
-	# set "article" helper attributes
-	items.each do |item|
-		if item.identifier.start_with? '/posts'
-			item[:kind] = 'article'
-			item[:created_at] = File.ctime(item[:content_filename]).to_s
-		end
-	end
+  # set "article" helper attributes
+  items.each do |item|
+    if item.identifier.start_with? '/posts'
+      item[:kind] = 'article'
+      item[:created_at] = File.ctime(item[:content_filename]).to_s
+    end
+  end
 end
 
 compile '/tags/*/' do
@@ -47,18 +47,18 @@ compile '/posts/*/' do
 end
 
 compile '*' do
-	# don’t filter binary items
-	unless item.binary?
-		case item[:extension] && item[:extension].split('.').last
-		when 'md', 'markdown', 'pandoc'
-			filter :pandoc
-			# filter :pygments
-		else
-			filter :erb
-		end
+  # don’t filter binary items
+  unless item.binary?
+    case item[:extension] && item[:extension].split('.').last
+    when 'md', 'markdown', 'pandoc'
+      filter :pandoc
+      # filter :pygments
+    else
+      filter :erb
+    end
 
-		layout 'default'
-	end
+    layout 'default'
+  end
 end
 
 route '/assets/*' do
