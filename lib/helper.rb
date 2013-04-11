@@ -121,7 +121,7 @@ def site_name
 end
 
 def pretty_time(time)
-  Time.parse(time).strftime("%B %d, %Y") if !time.nil?
+  Time.parse(time).strftime('%B %d, %Y') if !time.nil?
 end
 
 def featured_count

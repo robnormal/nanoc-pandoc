@@ -27,7 +27,7 @@ preprocess do
   items.each do |item|
     if item.identifier.start_with? '/posts'
       item[:kind] = 'article'
-      item[:created_at] = File.ctime(item[:content_filename]).to_s
+      item[:created_at] = item[:Date] || File.ctime(item[:content_filename]).to_s
     end
   end
 end
@@ -42,7 +42,11 @@ end
 
 compile '/posts/*/' do
   filter :pandoc
-  # filter :pygments
+  layout 'default'
+end
+
+compile '/pages/*/' do
+  filter :erb
   layout 'default'
 end
 
@@ -52,7 +56,6 @@ compile '*' do
     case item[:extension] && item[:extension].split('.').last
     when 'md', 'markdown', 'pandoc'
       filter :pandoc
-      # filter :pygments
     else
       filter :erb
     end
@@ -67,8 +70,19 @@ route '/assets/*' do
 end
 
 route '/posts/*' do
-  # Write item with identifier /foo/ to /foo/index.html
-  item.identifier['/posts'.size .. -1] + 'index.html'
+  # drop 'posts' lead
+  tail = item.identifier['/posts'.size .. -1]
+  tail.sub! /^\/(\d\d\d\d)\/(\d\d?)\/(\d\d?)-(.*)/ do
+    "/#{$1}/#{$2}/#{$3}/#{$4}"
+  end
+
+  tail + 'index.html'
+end
+
+route '/pages/*' do
+  # drop 'pages' lead
+  # This will not conflict with 'posts', because they are organized by date first
+  item.identifier['/pages'.size .. -1] + 'index.html'
 end
 
 route '*' do
