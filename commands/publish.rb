@@ -9,57 +9,6 @@ flag   :h, :help,  'show help for this command' do |value, cmd|
 end
 
 require 'fileutils'
-run do |opts, args, cmd|
-	infile = args.first
-
-	unless infile && infile.size > 0
-		puts cmd.help
-		exit 1
-	end
-
-	unless File.exist? infile
-		puts "No such file: #{infile}"
-	end
-
-	# find nanoc directory
-	home = File.absolute_path(File.dirname(__FILE__) + '/..')
-	content = home + '/content'
-
-	# move file to <nanoc dir>/contents/posts/YYYY/MM/DD-name.md
-	now = Time.new
-	dir = "#{content}/posts/#{now.year}/#{now.month.to_s.rjust(2,'0')}"
-	file = now.day.to_s.rjust(2,'0') + '-' + File.basename(infile)
-	outfile = "#{dir}/#{file}" 
-
-	# add created_at metadata
-	require(home + '/lib/filesystem_rob.rb')
-
-	meta_raw, content = FilesystemRob.split_metadata(File.read infile)
-
-	meta = YAML::load(meta_raw)
-
-	# insanely, YAML::load returns ... whatever it feels like, including a string
-	unless meta.class == Hash
-		meta = {}
-	end
-
-	# can't use now.to_s, because String#to_yaml interprets it as binary
-	meta['created_at'] = now.strftime "%Y-%m-%d %H:%M:%S %z"
-
-	# add meta back to content, removing the first line of YAML (---)
-	# for compatibility with MultiMarkdown
-	text = (meta.to_yaml + "\n" + content).lines.drop(1).join("\n")
-
-	# create directory if doesn't exist
-	FileUtils.mkdir_p dir
-
-	File.write(outfile, text)
-end
-
-
-
-
-require 'fileutils'
 
 class Publish < ::Nanoc::CLI::CommandRunner
 	def run
@@ -95,21 +44,7 @@ class Publish < ::Nanoc::CLI::CommandRunner
 
 	private
 		def publish_file(infile, config)
-
-			unless infile && infile.size > 0
-				raise Nanoc::Errors::GenericTrivial, "usage: #{command.usage}"
-			end
-
-			unless File.exist? infile
-				raise Nanoc::Errors::GenericTrivial, "No such file: #{infile}"
-			end
-
-			# remember: extname includes the dot
-			ext = File.extname(infile)[1..-1]
-
-			unless config[:text_extensions].include? ext
-				raise Nanoc::Errors::GenericTrivial, "Cannot publish binary file: #{infile}"
-			end
+      check_file(infile, config)
 
 			# move file to <nanoc dir>/contents/posts/YYYY/MM/DD-name.md
 			now = Time.new
@@ -117,24 +52,7 @@ class Publish < ::Nanoc::CLI::CommandRunner
 			file = now.day.to_s.rjust(2,'0') + '-' + File.basename(infile)
 			outfile = "#{dir}/#{file}" 
 
-			# add created_at metadata
-			require('./lib/filesystem_rob.rb')
-
-			meta_raw, content = FilesystemRob.split_metadata(File.read infile)
-
-			meta = YAML::load(meta_raw)
-
-			# insanely, YAML::load returns ... whatever it feels like, including a string
-			unless meta.class == Hash
-				meta = {}
-			end
-
-			# can't use now.to_s, because String#to_yaml interprets it as binary
-			meta['created_at'] = now.strftime "%Y-%m-%d %H:%M:%S %z"
-
-			# add meta back to content, removing the first line of YAML (---)
-			# for compatibility with MultiMarkdown
-			text = (meta.to_yaml.strip + "\n\n" + content).lines.drop(1).join('')
+      text = read_and_update_meta infile
 
 			# create directory if doesn't exist
 			FileUtils.mkdir_p dir
@@ -142,6 +60,43 @@ class Publish < ::Nanoc::CLI::CommandRunner
 			File.write(outfile, text)
 			outfile
 		end
+
+    def check_file(file, config)
+			unless file && file.size > 0
+				raise Nanoc::Errors::GenericTrivial, "usage: #{command.usage}"
+			end
+
+			unless File.exist? file
+				raise Nanoc::Errors::GenericTrivial, "No such file: #{file}"
+			end
+
+			# remember: extname includes the dot
+			ext = File.extname(file)[1..-1]
+
+			unless config[:text_extensions].include? ext
+				raise Nanoc::Errors::GenericTrivial, "Cannot publish binary file: #{file}"
+			end
+    end
+
+    def read_and_update_meta(file)
+			require('./lib/filesystem_rob.rb')
+			meta_raw, content = FilesystemRob.split_metadata(File.read file)
+
+			meta = YAML::load(meta_raw)
+
+      unless meta['Title'] || meta['title']
+				raise Nanoc::Errors::GenericTrivial, "Cannot publish post without a title: #{file}"
+      end
+
+      # add Date; needed for Blogging helper
+	    meta['Date'] = Time.new.strftime '%B %d, %Y'
+
+			# add meta back to content, removing the first line of YAML (---)
+			# for compatibility with MultiMarkdown
+			text = (meta.to_yaml.strip + "\n\n" + content).lines.drop(1).join('')
+
+      text
+    end
 end
 
 runner Publish
