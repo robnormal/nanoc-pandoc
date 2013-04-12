@@ -42,7 +42,7 @@ end
 
 compile '/posts/*/' do
   filter :pandoc
-  layout 'default'
+  layout 'post'
 end
 
 compile '/pages/*/' do

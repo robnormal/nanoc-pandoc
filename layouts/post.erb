@@ -1,0 +1,13 @@
+<% render 'default' do %>
+	<p><%= pretty_time @item[:created_at] %></p>
+  <%= yield %>
+  <script>
+    var
+      idcomments_acct = 'f626a4ebcc9f7e1c8dfd5fe0e0bf600f',
+      idcomments_post_id,
+      idcomments_post_url;
+  </script>
+  <span id="IDCommentsPostTitle" style="display:none"></span>
+  <script src="http://www.intensedebate.com/js/genericCommentWrapperV2.js"></script>
+<% end %>
+
